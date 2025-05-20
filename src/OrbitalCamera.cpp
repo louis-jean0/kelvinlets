@@ -16,7 +16,7 @@ void OrbitalCamera::setTarget(const glm::vec3& t) {
 }
 
 void OrbitalCamera::processDrag(float xpos, float ypos) {
-    if(m_isDragging) {
+    if(m_isDragging && m_hasMouse) {
         float dx = xpos - m_lastX;
         float dy = ypos - m_lastY;
         float sensitivity = 0.005f;
@@ -29,7 +29,7 @@ void OrbitalCamera::processDrag(float xpos, float ypos) {
 }
 
 void OrbitalCamera::processPan(float xpos, float ypos) {
-    if(m_isPanning) {
+    if(m_isPanning && m_hasMouse) {
         float dx = xpos - m_lastX;
         float dy = ypos - m_lastY;
         float sensitivity = 0.005f;

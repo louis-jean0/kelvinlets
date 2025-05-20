@@ -8,6 +8,7 @@ class PointGrid {
   public:
     PointGrid();
     PointGrid(int rows, int cols, int depth, float spacing = 1.0f);
+    PointGrid(float spacing);
 
     void setRows(int rows);
     void setCols(int cols);
@@ -27,11 +28,9 @@ class PointGrid {
     float m_spacing;
 
     std::vector<glm::vec3> m_vertices;
-    std::vector<unsigned int> m_indices;
 
     GLuint m_vao;
     GLuint m_vbo;
-    GLuint m_ebo;
 
     void clearGrid();
 };

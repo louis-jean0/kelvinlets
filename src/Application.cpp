@@ -49,7 +49,7 @@ void Application::initGLFW() {
     glfwSetMouseButtonCallback(m_window.get(), mouseButtonCallback);
     glfwSetCursorPosCallback(m_window.get(), cursorPosCallback);
     glfwSetScrollCallback(m_window.get(), scrollCallback);
-    //glfwSetKeyCallback(m_window.get(), keyCallback);
+    glfwSetKeyCallback(m_window.get(), keyCallback);
 }
 
 void Application::initOpenGL() {
@@ -62,7 +62,7 @@ void Application::initOpenGL() {
 }
 
 void Application::initShaders() {
-    m_baseShader = std::make_unique<Shader>(Config::SHADER_PATH + "base.vert", Config::SHADER_PATH + "base.frag");
+    m_baseShader = std::make_unique<Shader>(Config::SHADER_PATH + "kelvinlets.vert", Config::SHADER_PATH + "base.frag");
     m_projectionMatrix = glm::perspective(glm::radians(45.0f), (float)Config::WINDOW_WIDTH / (float)Config::WINDOW_HEIGHT, 0.1f, 1000.0f);
     m_baseShader->setMat4("u_projectionMatrix", m_projectionMatrix);
 }
@@ -75,10 +75,10 @@ void Application::initImGui() {
 }
 
 void Application::initObjects() {
-    m_pointGrid = std::make_unique<PointGrid>(100,100,100);
+    m_pointGrid = std::make_unique<PointGrid>();
     m_loadedModel = std::make_unique<Model>("../data/models/cube/Cube.gltf");
     m_camera = std::make_unique<OrbitalCamera>();
-    //m_camera = std::make_unique<OrbitalCamera>(glm::vec3(50.0f, 50.0f, 50.0f));
+    m_kelvinlet = std::make_unique<Kelvinlet>();
 }
 
 void Application::renderUI() {
@@ -93,13 +93,27 @@ void Application::renderUI() {
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
+void Application::sendKelvinletToShader() {
+    m_kelvinletsShader->use();
+    m_kelvinletsShader->setFloat("kelvinlet.brush.epsilon", m_kelvinlet->m_brush.epsilon);
+    m_kelvinletsShader->setFloat("kelvinlet.brush.f", m_kelvinlet->m_brush.f);
+    m_kelvinletsShader->setFloat("kelvinlet.a", m_kelvinlet->m_a);
+    m_kelvinletsShader->setFloat("kelvinlet.b", m_kelvinlet->m_b);
+    m_kelvinletsShader->setVec3("x0", glm::vec3(0.0f));
+}
+
 void Application::render() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     m_baseShader->use();
     m_viewMatrix = m_camera->getViewMatrix();
     m_baseShader->setMat4("u_viewMatrix", m_viewMatrix);
     m_baseShader->setMat4("u_projectionMatrix", m_projectionMatrix);
-    //m_pointGrid->drawGrid();
+    m_baseShader->setFloat("kelvinlet.brush.epsilon", m_kelvinlet->m_brush.epsilon);
+    m_baseShader->setFloat("kelvinlet.brush.f", m_kelvinlet->m_brush.f);
+    m_baseShader->setFloat("kelvinlet.a", m_kelvinlet->m_a);
+    m_baseShader->setFloat("kelvinlet.b", m_kelvinlet->m_b);
+    m_baseShader->setVec3("x0", glm::vec3(0.0f));
+    m_pointGrid->drawGrid();
     m_loadedModel->draw();
     renderUI();
 }
@@ -139,5 +153,12 @@ void Application::scrollCallback(GLFWwindow* window, [[maybe_unused]] double xof
     auto app = static_cast<Application*>(glfwGetWindowUserPointer(window));
     if(!ImGui::GetIO().WantCaptureMouse) {
         app->m_camera->processScroll(yoffset);
+    }
+}
+
+void Application::keyCallback(GLFWwindow* window, int key, [[maybe_unused]] int scancode, int action, [[maybe_unused]] int mods) {
+    auto app = static_cast<Application*>(glfwGetWindowUserPointer(window));
+    if(key == GLFW_KEY_E && action == GLFW_PRESS) {
+        app->m_camera->m_hasMouse = !app->m_camera->m_hasMouse;
     }
 }

@@ -7,6 +7,7 @@
 #include <Shader.hpp>
 #include <OrbitalCamera.hpp>
 #include <Model.hpp>
+#include <Kelvinlet.hpp>
 
 namespace Config {
     constexpr int WINDOW_WIDTH = 1600;
@@ -30,9 +31,11 @@ class Application {
         std::unique_ptr<PointGrid> m_pointGrid;
         std::unique_ptr<Model> m_loadedModel;
         std::unique_ptr<OrbitalCamera> m_camera;
+        std::unique_ptr<Kelvinlet> m_kelvinlet;
 
         // Shaders
         std::unique_ptr<Shader> m_baseShader;
+        std::unique_ptr<Shader> m_kelvinletsShader;
 
         // Matrices
         glm::mat4 m_viewMatrix;
@@ -46,6 +49,7 @@ class Application {
         void initObjects();
 
         // Rendering
+        void sendKelvinletToShader();
         void renderUI();
         void render();
         void cleanup();
@@ -54,5 +58,5 @@ class Application {
         static void mouseButtonCallback(GLFWwindow* window, int button, int action, [[maybe_unused]] int mods);
         static void scrollCallback(GLFWwindow* window, double xoffset, double yoffset);
         static void cursorPosCallback(GLFWwindow* window, double xpos, double ypos);
-        //static void keyCallback([[maybe_unused]] GLFWwindow* window, int key, int scancode, int action, int mods);
+        static void keyCallback(GLFWwindow* window, int key, [[maybe_unused]] int scancode, int action, [[maybe_unused]] int mods);
 };

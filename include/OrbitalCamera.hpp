@@ -15,8 +15,9 @@ public:
     glm::vec3 getPosition() const;
 
 public:
-    bool m_isDragging;
-    bool m_isPanning;
+    bool m_isDragging = false;
+    bool m_isPanning = false;
+    bool m_hasMouse = true;
     double m_lastX;
     double m_lastY;
 

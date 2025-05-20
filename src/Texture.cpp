@@ -20,13 +20,14 @@ Texture::Texture(const char* image_path) {
             format = GL_RED;
         else if (nrChannels == 3)
             format = GL_RGB;
-        else if (nrChannels == 4)
-            format = GL_RGBA;
-            glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
-            glGenerateMipmap(GL_TEXTURE_2D);
-        } else {
+        else format = GL_RGBA;
+
+        glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+        glGenerateMipmap(GL_TEXTURE_2D);
+        
+    } else {
             std::cout<< "Failed to load texture" << std::endl;
-        }
+    }
     stbi_image_free(data);
 }
 
@@ -53,12 +54,13 @@ Texture::Texture(const char* image_path, const std::string &directory, const std
             format = GL_RED;
         else if (nrChannels == 3)
             format = GL_RGB;
-        else if (nrChannels == 4)
-            format = GL_RGBA;
-            glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
-            glGenerateMipmap(GL_TEXTURE_2D);
-        } else {
-            std::cout<< "Failed to load texture" << std::endl;
+        else format = GL_RGBA;
+            
+        glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);    
+        glGenerateMipmap(GL_TEXTURE_2D);    
+    
+    } else {
+        std::cout<< "Failed to load texture" << std::endl;
         }
     stbi_image_free(data);
 }
@@ -85,13 +87,14 @@ Texture::Texture(std::string &filename, const std::string &directory, const std:
             format = GL_RED;
         else if (nrChannels == 3)
             format = GL_RGB;
-        else if (nrChannels == 4)
-            format = GL_RGBA;
-            glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
-            glGenerateMipmap(GL_TEXTURE_2D);
-        } else {
+        else format = GL_RGBA;
+        
+        glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+        glGenerateMipmap(GL_TEXTURE_2D);
+        
+    } else {
             std::cout<< "Failed to load texture" << std::endl;
-        }
+    }
     stbi_image_free(data);
 }
 
@@ -116,13 +119,14 @@ Texture::Texture(const std::string &filename_with_dir, const std::string &tex_ty
             format = GL_RED;
         else if (nrChannels == 3)
             format = GL_RGB;
-        else if (nrChannels == 4)
-            format = GL_RGBA;
-            glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
-            glGenerateMipmap(GL_TEXTURE_2D);
-        } else {
+        else format = GL_RGBA;
+            
+        glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+        glGenerateMipmap(GL_TEXTURE_2D);
+        
+    } else {
             std::cout<< "Failed to load texture" << std::endl;
-        }
+    }
     stbi_image_free(data);
 }
 
@@ -142,8 +146,7 @@ unsigned int Texture::texture_from_file(const char* image_path, const std::strin
             format = GL_RED;
         else if (nrComponents == 3)
             format = GL_RGB;
-        else if (nrComponents == 4)
-            format = GL_RGBA;
+        else format = GL_RGBA;
 
         glBindTexture(GL_TEXTURE_2D, textureID);
         glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
