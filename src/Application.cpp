@@ -76,7 +76,7 @@ void Application::initImGui() {
 
 void Application::initObjects() {
     m_pointGrid = std::make_unique<PointGrid>();
-    m_loadedModel = std::make_unique<Model>("../data/models/cube/Cube.gltf");
+    m_loadedModel = std::make_unique<Model>(Config::MODELS_PATH + "capsule/capsule.gltf");
     m_camera = std::make_unique<OrbitalCamera>();
     m_kelvinlet = std::make_unique<Kelvinlet>();
 }
@@ -122,6 +122,7 @@ void Application::cleanup() {
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
+    // No need for glfwDestroyWindow (using custom deleter with smart ptr)
     glfwTerminate();
 }
 

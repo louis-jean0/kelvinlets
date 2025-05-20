@@ -3,6 +3,9 @@
 #include <string>
 #include <iostream>
 #include <assimp/postprocess.h>
+#if _WIN32
+#include <Windows.h>
+#endif
 
 // Static variable
 std::vector<std::shared_ptr<Texture>> Model::textures_loaded;
@@ -41,8 +44,12 @@ void Model::bind_texture_to_meshes(std::shared_ptr<Texture> texture) {
 
 // Private methods
 void Model::load_model(const std::string& path) {
+    char buffer[MAX_PATH];
+    GetCurrentDirectoryA(MAX_PATH, buffer);
+    std::cout << "Current directory : " << buffer << std::endl;
     Assimp::Importer importer;
     const aiScene *scene = importer.ReadFile(path, aiProcess_GenSmoothNormals | aiProcess_Triangulate | aiProcess_CalcTangentSpace | aiProcess_FlipUVs | aiProcess_GenBoundingBoxes);
+    std::cout << path << std::endl;
     if(!scene || (scene->mFlags && AI_SCENE_FLAGS_INCOMPLETE) || !scene->mRootNode) {
         std::cout<<"ERROR::ASSIMP"<<importer.GetErrorString()<<std::endl;
     }

@@ -12,8 +12,8 @@
 namespace Config {
     constexpr int WINDOW_WIDTH = 1600;
     constexpr int WINDOW_HEIGHT = 1600;
-    const std::string SHADER_PATH = "../shaders/";
-    const std::string IMAGES_PATH = "../images/";
+    const std::string SHADER_PATH = "shaders/";
+    const std::string MODELS_PATH = "data/models/";
 };
 
 class Application {

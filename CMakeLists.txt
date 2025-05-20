@@ -59,7 +59,7 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     )
 elseif(MSVC)
     target_compile_options(${PROJECT_NAME} PRIVATE
-        $<$<COMPILE_LANGUAGE:CXX>:/W4>
+        $<$<COMPILE_LANGUAGE:CXX>:/W3>
     )
 endif()
 
@@ -69,7 +69,19 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     ${CMAKE_DL_LIBS}
 )
 
-#file(MAKE_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/shaders)
-#foreach(SHADER ${SHADER_FILES})
-#    configure_file(${SHADER} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/shaders/ COPYONLY)
-#endforeach()
+set(OUTPUT_DIR $<TARGET_FILE_DIR:${PROJECT_NAME}>)
+
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    ${CMAKE_SOURCE_DIR}/shaders
+    ${OUTPUT_DIR}/shaders
+    COMMENT "Copying shaders directory to output folder"
+)
+
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    ${CMAKE_SOURCE_DIR}/data
+    ${OUTPUT_DIR}/data
+    COMMENT "Copying data directory to output folder"
+)
+
