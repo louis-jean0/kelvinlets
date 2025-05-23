@@ -8,10 +8,11 @@
 #include <OrbitalCamera.hpp>
 #include <Model.hpp>
 #include <Kelvinlet.hpp>
+#include <Ray.hpp>
 
 namespace Config {
-    constexpr int WINDOW_WIDTH = 1600;
-    constexpr int WINDOW_HEIGHT = 1600;
+    constexpr int WINDOW_WIDTH = 800;
+    constexpr int WINDOW_HEIGHT = 800;
     const std::string SHADER_PATH = "shaders/";
     const std::string MODELS_PATH = "data/models/";
 };
@@ -33,10 +34,12 @@ class Application {
         std::unique_ptr<Model> m_loadedModel;
         std::unique_ptr<OrbitalCamera> m_camera;
         std::unique_ptr<Kelvinlet> m_kelvinlet;
+        std::unique_ptr<Ray> m_ray;
 
         // Shaders
         std::unique_ptr<Shader> m_baseShader;
         std::unique_ptr<Shader> m_kelvinletsShader;
+        std::unique_ptr<Shader> m_lineShader;
 
         // Matrices
         glm::mat4 m_viewMatrix;
@@ -50,6 +53,9 @@ class Application {
         void initObjects();
 
         // Specific
+        glm::vec3 m_lastRayStart;
+        glm::vec3 m_lastRayEnd;
+        bool m_hasRayToDraw = false;
         glm::vec3 screenPosToWorldRayDir(float mouseX, float mouseY);
         bool rayIntersectsTriangle(const glm::vec3& rayOrigin, const glm::vec3& rayDirection, const glm::vec3& v0, const glm::vec3& v1, const glm::vec3& v2, float& outT);
         glm::vec3 getRaycastHitPosition(float mouseX, float mouseY, const glm::vec3& rayOrigin);

@@ -62,9 +62,9 @@ void Application::initOpenGL() {
 }
 
 void Application::initShaders() {
-    m_baseShader = std::make_unique<Shader>(Config::SHADER_PATH + "kelvinlets.vert", Config::SHADER_PATH + "base.frag");
     m_projectionMatrix = glm::perspective(glm::radians(45.0f), (float)Config::WINDOW_WIDTH / (float)Config::WINDOW_HEIGHT, 0.1f, 1000.0f);
-    m_baseShader->setMat4("u_projectionMatrix", m_projectionMatrix);
+    m_baseShader = std::make_unique<Shader>(Config::SHADER_PATH + "kelvinlets.vert", Config::SHADER_PATH + "base.frag");
+    m_lineShader = std::make_unique<Shader>(Config::SHADER_PATH + "line.vert", Config::SHADER_PATH + "line.frag");
 }
 
 void Application::initImGui() {
@@ -79,6 +79,7 @@ void Application::initObjects() {
     m_loadedModel = std::make_unique<Model>(Config::MODELS_PATH + "capsule/capsule.gltf");
     m_camera = std::make_unique<OrbitalCamera>();
     m_kelvinlet = std::make_unique<Kelvinlet>();
+    m_ray = std::make_unique<Ray>();
 }
 
 void Application::renderUI() {
@@ -87,6 +88,7 @@ void Application::renderUI() {
     ImGui::NewFrame();
 
     ImGui::Begin("Kelvinlets app");
+    ImGui::Checkbox("Display ray picking", &m_hasRayToDraw);
     ImGui::End();
 
     ImGui::Render();
@@ -113,8 +115,15 @@ void Application::render() {
     m_baseShader->setFloat("kelvinlet.a", m_kelvinlet->m_a);
     m_baseShader->setFloat("kelvinlet.b", m_kelvinlet->m_b);
     m_baseShader->setVec3("x0", glm::vec3(0.0f));
-    m_pointGrid->drawGrid();
+    //m_pointGrid->drawGrid();
     m_loadedModel->draw();
+    if (m_hasRayToDraw) {
+        m_lineShader->use();
+        m_lineShader->setMat4("u_viewMatrix", m_viewMatrix);
+        m_lineShader->setMat4("u_projectionMatrix", m_projectionMatrix);
+        m_ray->updateRay();
+        m_ray->drawRay();
+    }
     renderUI();
 }
 
@@ -169,6 +178,32 @@ bool Application::rayIntersectsTriangle(const glm::vec3& rayOrigin, const glm::v
         return false;
 }
 
+glm::vec3 Application::getRaycastHitPosition(float mouseX, float mouseY, const glm::vec3& rayOrigin) {
+    glm::vec3 rayDir = screenPosToWorldRayDir(mouseX, mouseY);
+    m_ray->m_origin = rayOrigin;
+    m_ray->m_direction = rayDir;
+    glm::vec3 hitPosition;
+    float closestT = std::numeric_limits<float>::max();
+    bool hit = false;
+    for (const auto& entries : m_loadedModel->entries) {
+        auto& mesh = entries.mesh;
+        for (size_t i = 0; i < mesh->indices.size(); i += 3) {
+            glm::vec3 v0 = mesh->vertices[mesh->indices[i]].position;
+            glm::vec3 v1 = mesh->vertices[mesh->indices[i+1]].position;
+            glm::vec3 v2 = mesh->vertices[mesh->indices[i+2]].position;
+            float t;
+            if (rayIntersectsTriangle(rayOrigin, rayDir, v0, v1, v2, t)) {
+                if (t < closestT) {
+                    closestT = t;
+                    hitPosition = rayOrigin + t * rayDir;
+                    hit = true;
+                }
+            }
+        }
+    }
+    if (hit) return hitPosition;
+    else return glm::vec3(std::numeric_limits<float>::quiet_NaN());
+}
 
 void Application::cleanup() {
     ImGui_ImplOpenGL3_Shutdown();
@@ -183,6 +218,12 @@ void Application::mouseButtonCallback(GLFWwindow* window, int button, int action
     if(button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && !ImGui::GetIO().WantCaptureMouse) {
         app->m_camera->m_isDragging = true;
         glfwGetCursorPos(window, &app->m_camera->m_lastX, &app->m_camera->m_lastY);
+        if (!app->m_camera->m_hasMouse) {
+            double mouseX, mouseY;
+            glfwGetCursorPos(window, &mouseX, &mouseY);
+            app->m_ray->m_hitPosition = app->getRaycastHitPosition(mouseX, mouseY, app->m_camera->getPosition());
+            std::cout << glm::to_string(app->m_ray->m_hitPosition) << std::endl;
+        }
     }
     if(button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE) {
         app->m_camera->m_isDragging = false;
