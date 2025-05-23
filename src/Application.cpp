@@ -118,6 +118,58 @@ void Application::render() {
     renderUI();
 }
 
+glm::vec3 Application::screenPosToWorldRayDir(float mouseX, float mouseY) {
+    // Clip space
+    float x  = ((2.0f * mouseX) / Config::WINDOW_WIDTH) - 1.0f;
+    float y = 1.0f - ((2.0f * mouseY) / Config::WINDOW_HEIGHT);
+    float z = 1.0f;
+    glm::vec3 rayNdc = glm::vec3(x,y,z);
+    glm::vec4 rayClipSpace = glm::vec4(rayNdc.x, rayNdc.y, -1.0f, 1.0f);
+    // View space
+    glm::mat4 invProjection = glm::inverse(m_projectionMatrix);
+    glm::vec4 rayViewSpace = invProjection * rayClipSpace;
+    rayViewSpace = glm::vec4(rayViewSpace.x, rayViewSpace.y, -1.0f, 0.0f);
+    // World space
+    glm::mat4 invView = glm::inverse(m_viewMatrix);
+    glm::vec4 rayWorld = invView * rayViewSpace;
+    glm::vec3 rayDir = glm::normalize(rayWorld);
+
+    return rayDir;
+}
+
+// Returns true if ray intersects triangle, and sets 'outT' to distance along ray
+bool Application::rayIntersectsTriangle(const glm::vec3& rayOrigin, const glm::vec3& rayDir, const glm::vec3& v0, const glm::vec3& v1, const glm::vec3& v2, float& outT) {
+    const float EPSILON = 1e-8f;
+    glm::vec3 edge1 = v1 - v0;
+    glm::vec3 edge2 = v2 - v0;
+    glm::vec3 h = glm::cross(rayDir, edge2);
+    float a = glm::dot(edge1, h);
+    if (a > -EPSILON && a < EPSILON)
+        return false; // Ray is parallel to triangle
+
+    float f = 1.0f / a;
+    glm::vec3 s = rayOrigin - v0;
+    float u = f * glm::dot(s, h);
+    if (u < 0.0f || u > 1.0f)
+        return false;
+
+    glm::vec3 q = glm::cross(s, edge1);
+    float v = f * glm::dot(rayDir, q);
+    if (v < 0.0f || u + v > 1.0f)
+        return false;
+
+    // At this stage we can compute t to find out where the intersection point is on the line
+    float t = f * glm::dot(edge2, q);
+    if (t > EPSILON) // Ray intersection
+    {
+        outT = t;
+        return true;
+    }
+    else // No ray intersection
+        return false;
+}
+
+
 void Application::cleanup() {
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
@@ -161,5 +213,15 @@ void Application::keyCallback(GLFWwindow* window, int key, [[maybe_unused]] int 
     auto app = static_cast<Application*>(glfwGetWindowUserPointer(window));
     if(key == GLFW_KEY_E && action == GLFW_PRESS) {
         app->m_camera->m_hasMouse = !app->m_camera->m_hasMouse;
+    }
+    if(key == GLFW_KEY_Z && action == GLFW_PRESS) {
+        if(app->m_wireframe) {
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+            app->m_wireframe = false;
+        }
+        else {
+            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+            app->m_wireframe = true;
+        }
     }
 }

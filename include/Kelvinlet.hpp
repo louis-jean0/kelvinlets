@@ -4,7 +4,7 @@
 
 struct Brush {
     float epsilon = 0.1f;
-    float f = 100.0f;
+    float f = 2500.0f;
     float nu = 0.5f;
     float mu = 45.0f;
 };

@@ -26,6 +26,7 @@ class Application {
         // Window and states
         using GLFWwindowPtr = std::unique_ptr<GLFWwindow, void(*)(GLFWwindow*)>;        
         GLFWwindowPtr m_window = GLFWwindowPtr(nullptr, glfwDestroyWindow);
+        bool m_wireframe = false;
 
         // Objects
         std::unique_ptr<PointGrid> m_pointGrid;
@@ -47,6 +48,11 @@ class Application {
         void initShaders();
         void initImGui();
         void initObjects();
+
+        // Specific
+        glm::vec3 screenPosToWorldRayDir(float mouseX, float mouseY);
+        bool rayIntersectsTriangle(const glm::vec3& rayOrigin, const glm::vec3& rayDirection, const glm::vec3& v0, const glm::vec3& v1, const glm::vec3& v2, float& outT);
+        glm::vec3 getRaycastHitPosition(float mouseX, float mouseY, const glm::vec3& rayOrigin);
 
         // Rendering
         void sendKelvinletToShader();
