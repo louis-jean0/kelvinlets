@@ -76,7 +76,7 @@ void Application::initImGui() {
 
 void Application::initObjects() {
     m_pointGrid = std::make_unique<PointGrid>();
-    m_loadedModel = std::make_unique<Model>(Config::MODELS_PATH + "capsule/capsule.gltf");
+    m_loadedModel = std::make_unique<Model>(Config::MODELS_PATH + "cube/Cube.gltf");
     m_camera = std::make_unique<OrbitalCamera>();
     m_kelvinlet = std::make_unique<Kelvinlet>();
     m_ray = std::make_unique<Ray>();
@@ -88,6 +88,10 @@ void Application::renderUI() {
     ImGui::NewFrame();
 
     ImGui::Begin("Kelvinlets app");
+    ImGui::SliderFloat("Force", &m_kelvinlet->m_brush.f, 0.0f, 100.0f);
+    ImGui::SliderFloat("Epsilon", &m_kelvinlet->m_brush.epsilon, 0.0f, 1.0f);
+    ImGui::SliderFloat("Nu", &m_kelvinlet->m_brush.nu, 0.0f, 1.0f);
+    ImGui::SliderFloat("Mu", &m_kelvinlet->m_brush.mu, 0.0f, 1.0f);
     ImGui::Checkbox("Display ray picking", &m_hasRayToDraw);
     ImGui::End();
 
@@ -110,14 +114,21 @@ void Application::render() {
     m_viewMatrix = m_camera->getViewMatrix();
     m_baseShader->setMat4("u_viewMatrix", m_viewMatrix);
     m_baseShader->setMat4("u_projectionMatrix", m_projectionMatrix);
+    m_kelvinlet->computeConstants();
     m_baseShader->setFloat("kelvinlet.brush.epsilon", m_kelvinlet->m_brush.epsilon);
     m_baseShader->setFloat("kelvinlet.brush.f", m_kelvinlet->m_brush.f);
     m_baseShader->setFloat("kelvinlet.a", m_kelvinlet->m_a);
     m_baseShader->setFloat("kelvinlet.b", m_kelvinlet->m_b);
-    m_baseShader->setVec3("x0", glm::vec3(0.0f));
+    if (!glm::any(glm::isnan(m_ray->m_hitPosition))) {
+        m_baseShader->setVec3("x0", m_ray->m_hitPosition);
+    }
+    else {
+        m_baseShader->setVec3("x0", glm::vec3(100000000000000.0f));
+    }
     //m_pointGrid->drawGrid();
     m_loadedModel->draw();
     if (m_hasRayToDraw) {
+        std::cout << "m_hasRayToDraw : " << m_hasRayToDraw << std::endl;
         m_lineShader->use();
         m_lineShader->setMat4("u_viewMatrix", m_viewMatrix);
         m_lineShader->setMat4("u_projectionMatrix", m_projectionMatrix);

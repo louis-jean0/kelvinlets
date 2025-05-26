@@ -46,7 +46,10 @@ void Ray::updateRay() {
 }
 
 void Ray::drawRay() const {
+	/*glEnable(GL_LINE_WIDTH);
+	glLineWidth(10.0f);*/
 	glBindVertexArray(m_vao);
 	glDrawArrays(GL_LINES, 0, 2);
 	glBindVertexArray(0);
+	//glDisable(GL_LINE_WIDTH);
 }
