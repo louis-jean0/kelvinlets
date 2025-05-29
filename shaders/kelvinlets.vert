@@ -1,6 +1,10 @@
 #version 330 core
 
 layout(location = 0) in vec3 aPos;
+layout(location = 1) in vec3 aNormal;
+
+out vec3 Normal;
+out vec3 FragPos;
 
 struct Brush {
     float epsilon;
@@ -38,6 +42,7 @@ void main() {
     vec3 term3 = (kelvinlet.a / 2.0) * (pow(kelvinlet.brush.epsilon, 2) / pow(rEpsilon, 3)) * identity;
     vec3 displacement = (term1 + term2 + term3) * kelvinlet.brush.f; 
 
-    vec3 newPos = aPos + displacement;
-    gl_Position = u_projectionMatrix * u_viewMatrix * vec4(newPos, 1.0);
+    FragPos = aPos + displacement;
+    gl_Position = u_projectionMatrix * u_viewMatrix * vec4(FragPos, 1.0);
+    Normal = aNormal;
 }

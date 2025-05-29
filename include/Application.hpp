@@ -6,7 +6,6 @@
 #include <PointGrid.hpp>
 #include <Shader.hpp>
 #include <OrbitalCamera.hpp>
-#include <Model.hpp>
 #include <Kelvinlet.hpp>
 #include <Ray.hpp>
 
@@ -37,7 +36,7 @@ class Application {
         std::unique_ptr<Ray> m_ray;
 
         // Shaders
-        std::unique_ptr<Shader> m_baseShader;
+        std::shared_ptr<Shader> m_baseShader;
         std::unique_ptr<Shader> m_kelvinletsShader;
         std::unique_ptr<Shader> m_lineShader;
 
@@ -52,11 +51,11 @@ class Application {
         void initImGui();
         void initObjects();
 
-        // Specific
+        // Debug
         bool m_hasRayToDraw = false;
+
+        // Ray picking
         glm::vec3 screenPosToWorldRayDir(float mouseX, float mouseY);
-        bool rayIntersectsTriangle(const glm::vec3& rayOrigin, const glm::vec3& rayDirection, const glm::vec3& v0, const glm::vec3& v1, const glm::vec3& v2, float& outT);
-        glm::vec3 getRaycastHitPosition(float mouseX, float mouseY, const glm::vec3& rayOrigin);
 
         // Rendering
         void sendKelvinletToShader();

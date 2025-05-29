@@ -45,12 +45,12 @@ void Mesh::add_texture(std::shared_ptr<Texture> texture) {
 }
 
 void Mesh::draw() {
-    // // Material
-    // shader->setVec3("material.ambient", material->ambient);
-    // shader->setVec3("material.diffuse", material->diffuse);
-    // shader->setVec3("material.specular", material->specular);
-    // shader->setVec3("material.emissive", material->emissive);
-    // shader->setFloat("material.shininess", material->shininess);
+     // Material
+     shader->setVec3("u_material.ambient", material->ambient);
+     shader->setVec3("u_material.diffuse", material->diffuse);
+     shader->setVec3("u_material.specular", material->specular);
+     shader->setVec3("u_material.emissive", material->emissive);
+     shader->setFloat("u_material.shininess", material->shininess);
 
     // // Textures
     // unsigned int diffuseNr = 1;

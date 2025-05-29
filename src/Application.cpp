@@ -2,6 +2,7 @@
 #include <memory>
 #include <iostream>
 #include <Application.hpp>
+#include <glm/glm.hpp>
 #include <glm/ext/matrix_clip_space.hpp>
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/string_cast.hpp>
@@ -76,7 +77,8 @@ void Application::initImGui() {
 
 void Application::initObjects() {
     m_pointGrid = std::make_unique<PointGrid>();
-    m_loadedModel = std::make_unique<Model>(Config::MODELS_PATH + "cube/Cube.gltf");
+    m_loadedModel = std::make_unique<Model>(Config::MODELS_PATH + "capsule/capsule.gltf");
+    m_loadedModel->bind_shader_to_meshes(m_baseShader);
     m_camera = std::make_unique<OrbitalCamera>();
     m_kelvinlet = std::make_unique<Kelvinlet>();
     m_ray = std::make_unique<Ray>();
@@ -114,6 +116,7 @@ void Application::render() {
     m_viewMatrix = m_camera->getViewMatrix();
     m_baseShader->setMat4("u_viewMatrix", m_viewMatrix);
     m_baseShader->setMat4("u_projectionMatrix", m_projectionMatrix);
+    m_baseShader->setVec3("u_viewPos", m_camera->getPosition());
     m_kelvinlet->computeConstants();
     m_baseShader->setFloat("kelvinlet.brush.epsilon", m_kelvinlet->m_brush.epsilon);
     m_baseShader->setFloat("kelvinlet.brush.f", m_kelvinlet->m_brush.f);
@@ -157,65 +160,6 @@ glm::vec3 Application::screenPosToWorldRayDir(float mouseX, float mouseY) {
     return rayDir;
 }
 
-// Returns true if ray intersects triangle, and sets 'outT' to distance along ray
-bool Application::rayIntersectsTriangle(const glm::vec3& rayOrigin, const glm::vec3& rayDir, const glm::vec3& v0, const glm::vec3& v1, const glm::vec3& v2, float& outT) {
-    const float EPSILON = 1e-8f;
-    glm::vec3 edge1 = v1 - v0;
-    glm::vec3 edge2 = v2 - v0;
-    glm::vec3 h = glm::cross(rayDir, edge2);
-    float a = glm::dot(edge1, h);
-    if (a > -EPSILON && a < EPSILON)
-        return false; // Ray is parallel to triangle
-
-    float f = 1.0f / a;
-    glm::vec3 s = rayOrigin - v0;
-    float u = f * glm::dot(s, h);
-    if (u < 0.0f || u > 1.0f)
-        return false;
-
-    glm::vec3 q = glm::cross(s, edge1);
-    float v = f * glm::dot(rayDir, q);
-    if (v < 0.0f || u + v > 1.0f)
-        return false;
-
-    // At this stage we can compute t to find out where the intersection point is on the line
-    float t = f * glm::dot(edge2, q);
-    if (t > EPSILON) // Ray intersection
-    {
-        outT = t;
-        return true;
-    }
-    else // No ray intersection
-        return false;
-}
-
-glm::vec3 Application::getRaycastHitPosition(float mouseX, float mouseY, const glm::vec3& rayOrigin) {
-    glm::vec3 rayDir = screenPosToWorldRayDir(mouseX, mouseY);
-    m_ray->m_origin = rayOrigin;
-    m_ray->m_direction = rayDir;
-    glm::vec3 hitPosition;
-    float closestT = std::numeric_limits<float>::max();
-    bool hit = false;
-    for (const auto& entries : m_loadedModel->entries) {
-        auto& mesh = entries.mesh;
-        for (size_t i = 0; i < mesh->indices.size(); i += 3) {
-            glm::vec3 v0 = mesh->vertices[mesh->indices[i]].position;
-            glm::vec3 v1 = mesh->vertices[mesh->indices[i+1]].position;
-            glm::vec3 v2 = mesh->vertices[mesh->indices[i+2]].position;
-            float t;
-            if (rayIntersectsTriangle(rayOrigin, rayDir, v0, v1, v2, t)) {
-                if (t < closestT) {
-                    closestT = t;
-                    hitPosition = rayOrigin + t * rayDir;
-                    hit = true;
-                }
-            }
-        }
-    }
-    if (hit) return hitPosition;
-    else return glm::vec3(std::numeric_limits<float>::quiet_NaN());
-}
-
 void Application::cleanup() {
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
@@ -232,8 +176,8 @@ void Application::mouseButtonCallback(GLFWwindow* window, int button, int action
         if (!app->m_camera->m_hasMouse) {
             double mouseX, mouseY;
             glfwGetCursorPos(window, &mouseX, &mouseY);
-            app->m_ray->m_hitPosition = app->getRaycastHitPosition(mouseX, mouseY, app->m_camera->getPosition());
-            std::cout << glm::to_string(app->m_ray->m_hitPosition) << std::endl;
+            app->m_ray->m_direction = app->screenPosToWorldRayDir(mouseX, mouseY);
+            app->m_ray->getRaycastHitPosition(mouseX, mouseY, app->m_camera->getPosition(), app->m_loadedModel.get());
         }
     }
     if(button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE) {
